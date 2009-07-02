@@ -43,7 +43,7 @@ function versioncontrol_project_schema() {
     'indexes' => array(
       'repo_id_directory' => array('repo_id', 'directory'),
     ),
-    'primary key' => array('nid'),
+    'primary key' => array('nid', 'repo_id', 'directory'),
   );
 
   $schema['versioncontrol_project_comaintainers'] = array(
@@ -223,6 +223,27 @@ function versioncontrol_project_update_6100() {
     'success' => TRUE,
     'query' => t('Countless queries (probably), inserting project associations into {versioncontrol_project_items} and {versioncontrol_project_operations}.'),
   );
+
+  return $ret;
+}
+
+/**
+ * Update 6101: Add 'repo_id' and 'directory' to the primary key of
+ * 'versioncontrol_project_projects'.
+ *
+ * This begins to pave the way for multiple repositories per project.
+ */
+function versioncontrol_project_update_6100() {
+  $key = array(
+    'nid',
+    'repo_id',
+    'directory',
+  );
+
+  db_drop_primary_key($ret, 'versioncontrol_project_projects');
+  db_add_primary_key($ret, 'versioncontrol_project_projects', $key);
+
+  $ret[] = array('success' => TRUE, 'query' => 'Updated primary key.');
 
   return $ret;
 }
