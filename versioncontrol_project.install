@@ -39,11 +39,17 @@ function versioncontrol_project_schema() {
         'not null' => TRUE,
         'default' => '',
       ),
+      'branch_id' => array(
+        'description' => 'The primary key of project branch.',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      )
     ),
     'indexes' => array(
       'repo_id_directory' => array('repo_id', 'directory'),
     ),
-    'primary key' => array('nid', 'repo_id', 'directory'),
+    'primary key' => array('branch_id'),
   );
 
   $schema['versioncontrol_project_comaintainers'] = array(
@@ -228,20 +234,24 @@ function versioncontrol_project_update_6100() {
 }
 
 /**
- * Update 6101: Add 'repo_id' and 'directory' to the primary key of
- * 'versioncontrol_project_projects'.
+ * Update 6101: Add 'branch_id' primary key to {versioncontrol_project_projects}.
  *
  * This begins to pave the way for multiple repositories per project.
  */
-function versioncontrol_project_update_6100() {
-  $key = array(
-    'nid',
-    'repo_id',
-    'directory',
+function versioncontrol_project_update_6101() {
+  $branch_spec = array(
+    'description' => 'The primary key of project branch.',
+    'type' => 'serial',
+    'unsigned' => TRUE,
+    'not null' => TRUE,
+  );
+
+  $new_keys = array(
+    'primary keys' => array('branch_id'),
   );
 
   db_drop_primary_key($ret, 'versioncontrol_project_projects');
-  db_add_primary_key($ret, 'versioncontrol_project_projects', $key);
+  db_add_field($ret, 'versioncontrol_project_projects', 'branch_id', $branch_spec, $new_keys);
 
   $ret[] = array('success' => TRUE, 'query' => 'Updated primary key.');
 
