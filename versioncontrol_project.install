@@ -52,6 +52,27 @@ function versioncontrol_project_schema() {
     'primary key' => array('branch_id'),
   );
 
+  $schema['versioncontrol_project_branch_maintainters'] = array(
+    'description' => 'The list of branch maintainers. The users here will have write access to the referenced branch.',
+    'fields' => array(
+      'uid' => array(
+        'description' => 'The Drupal user id (referring to {users}.uid) of the maintainer.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'branch_id' => array(
+        'description' => 'The branch id (referring to {versioncontrol_project_projects}.branch_id) of the maintainer\'s branch.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+    ),
+    'primary key' => array('nid', 'uid'),
+  );
+
   $schema['versioncontrol_project_comaintainers'] = array(
     'description' => 'The list of project co-maintainers. The actual maintainer is the node owner and not stored in here, (s)he will be retrieved from {node}.uid rather than from this table.',
     'fields' => array(
@@ -254,6 +275,39 @@ function versioncontrol_project_update_6101() {
   db_add_field($ret, 'versioncontrol_project_projects', 'branch_id', $branch_spec, $new_keys);
 
   $ret[] = array('success' => TRUE, 'query' => 'Updated primary key.');
+
+  return $ret;
+}
+
+/**
+ * Update 6102: Add the 'versioncontrol_project_branch_maintainters' table.
+ *
+ * Stores references to the maintainers of a branch.
+ */
+function versioncontrol_project_update_6102() {
+  $table = array(
+    'description' => 'The list of branch maintainers. The users here will have write access to the referenced branch.',
+    'fields' => array(
+      'uid' => array(
+        'description' => 'The Drupal user id (referring to {users}.uid) of the maintainer.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'branch_id' => array(
+        'description' => 'The branch id (referring to {versioncontrol_project_projects}.branch_id) of the maintainer\'s branch.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+    ),
+    'primary key' => array('uid', 'branch_id'),
+  );
+  db_create_table($ret, 'versioncontrol_project_branch_maintainters', $table);
+
+  $ret[] = array('success' => TRUE, 'query' => 'Added table {versioncontrol_project_branch_maintainters}.');
 
   return $ret;
 }
