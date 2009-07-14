@@ -305,7 +305,7 @@ function versioncontrol_project_update_6102() {
     ),
     'primary key' => array('uid', 'branch_id'),
   );
-  db_create_table($ret, 'versioncontrol_project_branch_maintainters', $table);
+  db_create_table($ret, 'versioncontrol_project_branch_maintainers', $table);
 
   $ret[] = array('success' => TRUE, 'query' => 'Added table {versioncontrol_project_branch_maintainters}.');
 
