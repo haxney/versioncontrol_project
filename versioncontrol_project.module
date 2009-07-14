@@ -106,6 +106,18 @@ function versioncontrol_project_menu() {
     'type' => MENU_CALLBACK,
   );
 
+  /*
+   * View and manage branches.
+   */
+  $items['node/%versioncontrol_project_node/branches'] = array(
+    'title' => 'Branches',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('versioncontrol_project_branches_form', 1),
+    'access arguments' => array(1),
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 7,
+  );
+
   return $items;
 }
 
@@ -530,6 +542,13 @@ function versioncontrol_project_commit_access_form(&$form_state, $node) {
     '#suffix' => '</p>',
   );
 
+  $form['user_repos'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Allow user repositories'),
+    '#description' => t('Allow users to create their own private repositories.'),
+    '#default_value' => 0,
+  );
+
   // The actual table is created inside the '#after_build' function.
   $form['table'] = array(
     '#type' => 'markup',
@@ -660,6 +679,79 @@ function versioncontrol_project_commit_access_form_submit($form, &$form_state) {
   drupal_set_message(t('Commit access has been granted to !user.', array(
     '!user' => theme('username', $user),
   )));
+}
+
+/**
+ * Form callback for 'node/%versioncontrol_project_node/branches':
+ *
+ * List existing branches and provide an option to add a new branch.
+ */
+function versioncontrol_project_branches_form(&$form_state, $node) {
+  $form = array();
+  $project = $node->versioncontrol_project;
+  $repository = versioncontrol_get_repository($project['repo_id']);
+
+  $form['#nid'] = $node->nid;
+  $form['#repo_id'] = $project['repo_id'];
+  $form['#maintainer_uids'] = $project['maintainer_uids'];
+
+  $form['introduction'] = array(
+    '#type' => 'markup',
+    '#value' => t(
+      'These are the branches of the %title project.', array(
+        '%title' => $node->title,
+      )),
+    '#prefix' => '<p>',
+    '#suffix' => '</p>',
+  );
+
+  // The actual table is created inside the '#after_build' function.
+  $form['table'] = array(
+    '#type' => 'markup',
+    '#value' => '',
+    '#node' => $node, // remember that one for the '#after_build' function
+    '#repository' => $repository, // and this one as well
+    '#after_build' => array('versioncontrol_project_branches_table'),
+  );
+
+  return $form;
+}
+
+/**
+ * Construct a table of branches of the current project.
+ */
+function versioncontrol_project_branches_table($form, $form_state) {
+  $node = $form['#node'];
+  $project = $node->versioncontrol_project;
+
+  $rows = array();
+  $header = array();
+  $header[] = array('data' => t('Repository'), 'field' => 'repo_id');
+  $header[] = array('data' => t('Maintainers'));
+  $header[] = array('data' => t('Directory'));
+
+  $query = 'SELECT b.nid, b.repo_id, b.directory, b.branch_id FROM {versioncontrol_project_projects} b WHERE b.nid = %d';
+  $result = db_query($query, $node->nid);
+  while ($branch = db_fetch_object($result)) {
+    $repo = versioncontrol_get_repository($branch->repo_id);
+
+    // Get the maintainers of the branch.
+    $result = db_query('SELECT u.uid, u.name FROM {users} u '.
+                       'INNER JOIN {versioncontrol_project_branch_maintainers} m '.
+                       'ON m.uid = u.uid '.
+                       'WHERE m.branch_id = %d', $branch->branch_id);
+    $maintainers = array();
+    while ($maintainer = db_fetch_object($result)) {
+      $maintainers[] = $maintainer;
+    }
+
+    $rows[] = array($repo['name'],
+                    theme('user_list', $maintainers),
+                    check_plain($branch->directory));
+  }
+
+  $form['#value'] = theme('table', $header, $rows);
+  return $form;
 }
 
 /**
