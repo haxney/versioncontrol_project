@@ -31,10 +31,10 @@ function versioncontrol_project_boot() {
  *
  * Adds the following permissions:
  *
- *   - 'create project branches': Create branches in projects.
+ *   - 'clone project branches': Clone branches in projects.
  */
 function versioncontrol_project_perm() {
-  return array('create project branches');
+  return array('clone project branches');
 }
 
 /**
