@@ -27,6 +27,17 @@ function versioncontrol_project_boot() {
 }
 
 /**
+ * Implementation of hook_perm().
+ *
+ * Adds the following permissions:
+ *
+ *   - 'create project branches': Create branches in projects.
+ */
+function versioncontrol_project_perm() {
+  return array('create project branches');
+}
+
+/**
  * Check if any project/item associations have been missed, and if so,
  * determine their status and write it to the database.
  */
@@ -721,6 +732,13 @@ function versioncontrol_project_branches_form(&$form_state, $node) {
     '#after_build' => array('versioncontrol_project_branches_table'),
   );
 
+  if (variable_get('versioncontrol_project_user_branches_access', 0) and user_access('create project branches')) {
+    $form['create_branch'] = array(
+      '#type' => 'submit',
+      '#value' => t('Create new branch'),
+      '#submit' => array('versioncontrol_project_branches_create_branch'),
+    );
+  }
 
   return $form;
 }
