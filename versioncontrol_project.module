@@ -760,7 +760,7 @@ function versioncontrol_project_branches_table($form, $form_state) {
                        'WHERE m.branch_id = %d', $branch->branch_id);
     $maintainers = array();
     while ($maintainer = db_fetch_object($result)) {
-      $maintainers[] = user_load($maintainer);
+      $maintainers[] = $maintainer;
     }
 
     $clone_branch = l(t('Clone this branch'), 'node/'. $node->nid .'/branches/clone');
