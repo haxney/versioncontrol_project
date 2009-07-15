@@ -542,13 +542,6 @@ function versioncontrol_project_commit_access_form(&$form_state, $node) {
     '#suffix' => '</p>',
   );
 
-  $form['user_repos'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Allow user repositories'),
-    '#description' => t('Allow users to create their own private repositories.'),
-    '#default_value' => 0,
-  );
-
   // The actual table is created inside the '#after_build' function.
   $form['table'] = array(
     '#type' => 'markup',
@@ -691,7 +684,7 @@ function versioncontrol_project_branches_form(&$form_state, $node) {
   $project = $node->versioncontrol_project;
   $repository = versioncontrol_get_repository($project['repo_id']);
 
-  $form['#nid'] = $node->nid;
+  $form['#node'] = $node;
   $form['#repo_id'] = $project['repo_id'];
   $form['#maintainer_uids'] = $project['maintainer_uids'];
 
@@ -705,6 +698,20 @@ function versioncontrol_project_branches_form(&$form_state, $node) {
     '#suffix' => '</p>',
   );
 
+  if (versioncontrol_project_commit_access_edit_access($node)) {
+    $form['user_branches'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Allow user repositories'),
+      '#description' => t('Allow users to create their own private repositories.'),
+      '#default_value' => variable_get('versioncontrol_project_user_branches_access', 0),
+    );
+
+    $form['submit'] = array(
+      '#type' => 'submit',
+      '#value' => t('Save settings'),
+    );
+  }
+
   // The actual table is created inside the '#after_build' function.
   $form['table'] = array(
     '#type' => 'markup',
@@ -713,6 +720,8 @@ function versioncontrol_project_branches_form(&$form_state, $node) {
     '#repository' => $repository, // and this one as well
     '#after_build' => array('versioncontrol_project_branches_table'),
   );
+
+  $form['#submit'][] = 'versioncontrol_project_branches_submit';
 
   return $form;
 }
@@ -752,6 +761,12 @@ function versioncontrol_project_branches_table($form, $form_state) {
 
   $form['#value'] = theme('table', $header, $rows);
   return $form;
+}
+function versioncontrol_project_branches_submit ($form, &$form_state) {
+  $node = $form['#node'];
+  variable_set('versioncontrol_project_user_branches_access', $form_state['values']['user_branches']);
+
+  drupal_set_message(t('Branch settings for %title saved.', array('%title' => $node->title)));
 }
 
 /**
