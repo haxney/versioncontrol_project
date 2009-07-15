@@ -20,31 +20,38 @@ function versioncontrol_project_schema() {
     'fields' => array(
       'nid' => array(
         'description' => 'The {node}.nid identifier of the project node.',
-        'type' => 'int',
-        'unsigned' => TRUE,
-        'not null' => TRUE,
-        'default' => 0,
+        'type'        => 'int',
+        'unsigned'    => TRUE,
+        'not null'    => TRUE,
+        'default'     => 0,
       ),
       'repo_id' => array(
         'description' => 'The {versioncontrol_repositories}.repo_id identifier of the repository where the project directory is located.',
-        'type' => 'int',
-        'unsigned' => TRUE,
-        'not null' => TRUE,
-        'default' => 0,
+        'type'        => 'int',
+        'unsigned'    => TRUE,
+        'not null'    => TRUE,
+        'default'     => 0,
       ),
       'directory' => array(
         'description' => 'The path of the project directory relative to the repository root, in the same format as {versioncontrol_item_revisions}.path (which means it starts with a slash and does not end with one).',
-        'type' => 'varchar',
-        'length' => 255,
-        'not null' => TRUE,
-        'default' => '',
+        'type'        => 'varchar',
+        'length'      => 255,
+        'not null'    => TRUE,
+        'default'     => '',
       ),
       'branch_id' => array(
         'description' => 'The primary key of project branch.',
-        'type' => 'serial',
-        'unsigned' => TRUE,
-        'not null' => TRUE,
-      )
+        'type'        => 'serial',
+        'unsigned'    => TRUE,
+        'not null'    => TRUE,
+      ),
+      'name' => array(
+        'description' => 'The name of the project branch.',
+        'type'        => 'varchar',
+        'length'      => 128,
+        'default'     => '',
+        'not null'    => TRUE,
+      ),
     ),
     'indexes' => array(
       'repo_id_directory' => array('repo_id', 'directory'),
@@ -255,7 +262,8 @@ function versioncontrol_project_update_6100() {
 }
 
 /**
- * Update 6101: Add 'branch_id' primary key to {versioncontrol_project_projects}.
+ * Update 6101: Add 'name' field and 'branch_id' primary key to
+ * {versioncontrol_project_projects}.
  *
  * This begins to pave the way for multiple repositories per project.
  */
@@ -266,6 +274,13 @@ function versioncontrol_project_update_6101() {
     'unsigned' => TRUE,
     'not null' => TRUE,
   );
+  $name_spec = array(
+    'description' => 'The name of the project branch.',
+    'type'        => 'varchar',
+    'length'      => 128,
+    'default'     => '',
+    'not null'    => TRUE,
+  );
 
   $new_keys = array(
     'primary keys' => array('branch_id'),
@@ -273,8 +288,9 @@ function versioncontrol_project_update_6101() {
 
   db_drop_primary_key($ret, 'versioncontrol_project_projects');
   db_add_field($ret, 'versioncontrol_project_projects', 'branch_id', $branch_spec, $new_keys);
+  db_add_field($ret, 'versioncontrol_project_projects', 'name', $name_spec);
 
-  $ret[] = array('success' => TRUE, 'query' => 'Updated primary key.');
+  $ret[] = array('success' => TRUE, 'query' => 'Added new fields.');
 
   return $ret;
 }
