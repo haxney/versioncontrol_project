@@ -721,7 +721,6 @@ function versioncontrol_project_branches_form(&$form_state, $node) {
     '#after_build' => array('versioncontrol_project_branches_table'),
   );
 
-  $form['#submit'][] = 'versioncontrol_project_branches_submit';
 
   return $form;
 }
@@ -762,7 +761,11 @@ function versioncontrol_project_branches_table($form, $form_state) {
   $form['#value'] = theme('table', $header, $rows);
   return $form;
 }
-function versioncontrol_project_branches_submit ($form, &$form_state) {
+
+/**
+ * Submit function for branches form: save branch access setting.
+ */
+function versioncontrol_project_branches_form_submit($form, &$form_state) {
   $node = $form['#node'];
   variable_set('versioncontrol_project_user_branches_access', $form_state['values']['user_branches']);
 
