@@ -732,14 +732,6 @@ function versioncontrol_project_branches_form(&$form_state, $node) {
     '#after_build' => array('versioncontrol_project_branches_table'),
   );
 
-  if (variable_get('versioncontrol_project_user_branches_access', 0) and user_access('create project branches')) {
-    $form['create_branch'] = array(
-      '#type' => 'submit',
-      '#value' => t('Create new branch'),
-      '#submit' => array('versioncontrol_project_branches_create_branch'),
-    );
-  }
-
   return $form;
 }
 
@@ -755,6 +747,7 @@ function versioncontrol_project_branches_table($form, $form_state) {
   $header[] = array('data' => t('Repository'), 'field' => 'repo_id');
   $header[] = array('data' => t('Maintainers'));
   $header[] = array('data' => t('Directory'));
+  $header[] = array('data' => t('Actions'));
 
   $query = 'SELECT b.nid, b.repo_id, b.directory, b.branch_id FROM {versioncontrol_project_projects} b WHERE b.nid = %d';
   $result = db_query($query, $node->nid);
@@ -771,9 +764,14 @@ function versioncontrol_project_branches_table($form, $form_state) {
       $maintainers[] = $maintainer;
     }
 
-    $rows[] = array($repo['name'],
-                    theme('user_list', $maintainers),
-                    check_plain($branch->directory));
+    $clone_branch = l(t('Clone this branch'), 'node/'. $node->nid .'/branches/clone');
+
+    $rows[] = array(
+      $repo['name'],
+      theme('user_list', $maintainers),
+      check_plain($branch->directory),
+      $clone_branch,
+    );
   }
 
   $form['#value'] = theme('table', $header, $rows);
