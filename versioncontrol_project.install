@@ -274,11 +274,20 @@ function versioncontrol_project_update_6101() {
     'unsigned' => TRUE,
     'not null' => TRUE,
   );
+
   $name_spec = array(
     'description' => 'The name of the project branch.',
     'type'        => 'varchar',
     'length'      => 128,
     'default'     => '',
+    'not null'    => TRUE,
+  );
+
+  // TODO: Figure out a better way of doing this!
+  $cloneable_spec = array(
+    'description' => 'Boolean indicating whether the branches of the project are cloneable.',
+    'type'        => 'int',
+    'default'     => 0,
     'not null'    => TRUE,
   );
 
@@ -289,6 +298,7 @@ function versioncontrol_project_update_6101() {
   db_drop_primary_key($ret, 'versioncontrol_project_projects');
   db_add_field($ret, 'versioncontrol_project_projects', 'branch_id', $branch_spec, $new_keys);
   db_add_field($ret, 'versioncontrol_project_projects', 'name', $name_spec);
+  db_add_field($ret, 'project_projects', 'branches_cloneable', $cloneable_spec);
 
   $ret[] = array('success' => TRUE, 'query' => 'Added new fields.');
 
