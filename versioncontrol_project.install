@@ -52,7 +52,7 @@ function versioncontrol_project_schema() {
     'primary key' => array('branch_id'),
   );
 
-  $schema['versioncontrol_project_branch_maintainters'] = array(
+  $schema['versioncontrol_project_branch_maintainers'] = array(
     'description' => 'The list of branch maintainers. The users here will have write access to the referenced branch.',
     'fields' => array(
       'uid' => array(
@@ -70,7 +70,7 @@ function versioncontrol_project_schema() {
         'default' => 0,
       ),
     ),
-    'primary key' => array('nid', 'uid'),
+    'primary key' => array('uid', 'branch_id'),
   );
 
   $schema['versioncontrol_project_comaintainers'] = array(
