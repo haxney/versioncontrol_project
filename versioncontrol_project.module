@@ -816,32 +816,24 @@ function versioncontrol_project_branches_clone_branch_access($project_node, $bra
     global $user;
     $account = clone $user;
   }
-  if (!$project_node->branches_cloneable) {
-    return FALSE;
-  }
-  if (!node_access('view', $project_node, $account)) {
-    return FALSE;
-  }
-  if (!user_access('clone project branches')) {
-    return FALSE;
-  }
-
   // Load the branch and repository from the database.
   $result = db_query('SELECT br.nid, br.repo_id, br.directory, br.name FROM {versioncontrol_project_projects} br '.
                      'INNER JOIN {versioncontrol_repositories} r '.
                      'ON br.repo_id = r.repo_id '.
                      'WHERE br.branch_id = %d', $branch_id);
   $branch = db_fetch_object($result);
-  if (!$branch) {
-    return FALSE;
+
+  switch (TRUE) {
+    case (!$project_node->branches_cloneable):
+    case (!node_access('view', $project_node, $account)):
+    case (!user_access('clone project branches')):
+    case (!$branch):
+    case (!$repository = versioncontrol_get_repository($branch->repo_id)):
+    case (!versioncontrol_is_account_authorized_cloneable($repository, $account->uid)):
+      return FALSE;
+    default:
+      return TRUE;
   }
-  if (!$repository = versioncontrol_get_repository($branch->repo_id)) {
-    return FALSE;
-  }
-  if (!versioncontrol_is_account_authorized_cloneable($repository, $account->uid)) {
-    return FALSE;
-  }
-  return TRUE;
 }
 
 /**
