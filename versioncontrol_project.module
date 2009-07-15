@@ -696,7 +696,6 @@ function versioncontrol_project_branches_form(&$form_state, $node) {
   $repository = versioncontrol_get_repository($project['repo_id']);
 
   $form['#node'] = $node;
-  $form['#repo_id'] = $project['repo_id'];
   $form['#maintainer_uids'] = $project['maintainer_uids'];
 
   $form['introduction'] = array(
