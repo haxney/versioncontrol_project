@@ -152,6 +152,29 @@ function versioncontrol_project_schema() {
 function versioncontrol_project_install() {
   // Create tables.
   drupal_install_schema('versioncontrol_project');
+
+  $cloneable_spec = array(
+    'description' => 'Boolean indicating whether the branches of the project are cloneable.',
+    'type'        => 'int',
+    'default'     => 0,
+    'not null'    => TRUE,
+  );
+
+  db_add_field($ret, 'project_projects', 'branches_cloneable', $cloneable_spec);
+}
+
+/**
+ * Implementation of hook_schema_alter().
+ *
+ * Adds the "branches_cloneable" field to the {project_projects} table.
+ */
+function versioncontrol_project_schema_alter(&$schema) {
+  $schema['project_projects']['fields']['branches_cloneable'] = array(
+    'description' => 'Boolean indicating whether the branches of the project are cloneable.',
+    'type'        => 'int',
+    'default'     => 0,
+    'not null'    => TRUE,
+  );
 }
 
 /**
@@ -283,7 +306,6 @@ function versioncontrol_project_update_6101() {
     'not null'    => TRUE,
   );
 
-  // TODO: Figure out a better way of doing this!
   $cloneable_spec = array(
     'description' => 'Boolean indicating whether the branches of the project are cloneable.',
     'type'        => 'int',
