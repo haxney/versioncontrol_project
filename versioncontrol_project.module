@@ -365,6 +365,20 @@ function versioncontrol_project_form_alter(&$form, $form_state, $form_id) {
       '#value' => 0,
     );
 
+    $form['versioncontrol_project'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Version control integration'),
+      '#collapsible' => TRUE,
+      '#collapsed' => isset($project),
+    );
+
+    $form['versioncontrol_project']['user_forks'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Allow user forks'),
+      '#description' => t('Allow users to create their own forks of repositories.'),
+      '#default_value' => 0,
+    );
+
     // If the user doesn't have commit access to at least one repository,
     // it makes no sense to present version control integration options.
     if (empty($accounts)) {
@@ -395,12 +409,6 @@ function versioncontrol_project_form_alter(&$form, $form_state, $form_id) {
     // We're ready to go, add the form elements now.
     $form['#validate'][] = 'versioncontrol_project_form_validate';
 
-    $form['versioncontrol_project'] = array(
-      '#type' => 'fieldset',
-      '#title' => t('Version control integration'),
-      '#collapsible' => TRUE,
-      '#collapsed' => isset($project),
-    );
     $form['versioncontrol_project']['new_repository'] = array(); // currently unused
     $form['versioncontrol_project']['existing_repository'] = array();
 
