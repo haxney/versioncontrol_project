@@ -1,0 +1,59 @@
+<?php
+// $Id$
+/**
+ * @file
+ * Test the functionality of multiple forks per project.
+ *
+ * Copyright 2009 by Daniel Hackney ("dhax", http://drupal.org/user/384635)
+ */
+
+class ForksTest extends DrupalWebTestCase {
+  public static function getInfo() {
+    return array(
+      'name' => t('multiple forks per project'),
+      'description' => t('Test the creation and access controls of creating multiple forks in a project.'),
+      'group' => t('Version Control - Project Integration'),
+    );
+  }
+
+  /**
+   * Creates a sample project.
+   *
+   * @return
+   *   The project node created
+   */
+  function createProject() {
+    $settings = array(
+      'type' => 'project_project',
+      'user_forks' => 1,
+    );
+    return $this->drupalCreateNode($settings);
+  }
+
+  /**
+   * Test the display of the forks page form.
+   */
+  function testForksPage() {
+    $this->project = $this->createProject();
+
+    $this->drupalGet('node/'. $this->project->nid);
+    $this->clickLink(t('Forks'));
+    $this->assertResponse(403, t('Deny viewing forks to anonymous users.'));
+
+    $this->admin_user = $this->drupalCreateUser(array(
+              'access own projects',
+              'access projects',
+              'administer projects',
+              'clone project forks',
+              'view project forks',
+            ));
+
+    $this->drupalLogin($this->drupalCreateUser());
+    $this->clickLink(t('Forks'));
+    $this->assertResponse(403, t('Deny viewing forks to unauthorized users.'));
+
+    $this->drupalLogin($this->drupalCreateUser());
+    $this->clickLink(t('Forks'));
+    $this->assertResponse(200, t('Allow viewing forks by admin users.'));
+  }
+}
