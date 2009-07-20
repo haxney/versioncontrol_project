@@ -16,6 +16,10 @@ class ForksTest extends DrupalWebTestCase {
     );
   }
 
+  public function setUp() {
+    parent::setUp('project', 'versioncontrol', 'versioncontrol_project');
+  }
+
   /**
    * Creates a sample project.
    *
