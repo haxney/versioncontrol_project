@@ -40,7 +40,10 @@ function versioncontrol_project_boot() {
  *   - 'clone project forks': Clone forks in projects.
  */
 function versioncontrol_project_perm() {
-  return array('clone project forks');
+  return array(
+    'clone project forks',
+    'view project forks',
+  );
 }
 
 /**
@@ -130,7 +133,7 @@ function versioncontrol_project_menu() {
     'title' => 'Forks',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('versioncontrol_project_forks_form', 1),
-    'access arguments' => array(1),
+    'access arguments' => array('view project forks'),
     'type' => MENU_LOCAL_TASK,
     'weight' => 7,
   );
