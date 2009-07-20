@@ -155,23 +155,23 @@ function versioncontrol_project_install() {
   drupal_install_schema('versioncontrol_project');
 
   $cloneable_spec = array(
-    'description' => 'Boolean indicating whether the forkes of the project are cloneable.',
+    'description' => 'Boolean indicating whether the forks of the project are cloneable.',
     'type'        => 'int',
     'default'     => 0,
     'not null'    => TRUE,
   );
 
-  db_add_field($ret, 'project_projects', 'forkes_cloneable', $cloneable_spec);
+  db_add_field($ret, 'project_projects', 'forks_cloneable', $cloneable_spec);
 }
 
 /**
  * Implementation of hook_schema_alter().
  *
- * Adds the "forkes_cloneable" field to the {project_projects} table.
+ * Adds the "forks_cloneable" field to the {project_projects} table.
  */
 function versioncontrol_project_schema_alter(&$schema) {
-  $schema['project_projects']['fields']['forkes_cloneable'] = array(
-    'description' => 'Boolean indicating whether the forkes of the project are cloneable.',
+  $schema['project_projects']['fields']['forks_cloneable'] = array(
+    'description' => 'Boolean indicating whether the forks of the project are cloneable.',
     'type'        => 'int',
     'default'     => 0,
     'not null'    => TRUE,
@@ -308,7 +308,7 @@ function versioncontrol_project_update_6101() {
   );
 
   $cloneable_spec = array(
-    'description' => 'Boolean indicating whether the forkes of the project are cloneable.',
+    'description' => 'Boolean indicating whether the forks of the project are cloneable.',
     'type'        => 'int',
     'default'     => 0,
     'not null'    => TRUE,
@@ -321,7 +321,7 @@ function versioncontrol_project_update_6101() {
   db_drop_primary_key($ret, 'versioncontrol_project_projects');
   db_add_field($ret, 'versioncontrol_project_projects', 'fork_id', $fork_spec, $new_keys);
   db_add_field($ret, 'versioncontrol_project_projects', 'name', $name_spec);
-  db_add_field($ret, 'project_projects', 'forkes_cloneable', $cloneable_spec);
+  db_add_field($ret, 'project_projects', 'forks_cloneable', $cloneable_spec);
 
   $ret[] = array('success' => TRUE, 'query' => 'Added new fields.');
 
