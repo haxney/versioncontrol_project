@@ -40,14 +40,14 @@ function versioncontrol_project_schema() {
         'not null'    => TRUE,
         'default'     => '',
       ),
-      'branch_id' => array(
-        'description' => 'The primary key of project branch.',
+      'fork_id' => array(
+        'description' => 'The primary key of project fork.',
         'type'        => 'serial',
         'unsigned'    => TRUE,
         'not null'    => TRUE,
       ),
       'name' => array(
-        'description' => 'The name of the project branch.',
+        'description' => 'The name of the project fork.',
         'type'        => 'varchar',
         'length'      => 128,
         'default'     => '',
@@ -57,11 +57,11 @@ function versioncontrol_project_schema() {
     'indexes' => array(
       'repo_id_directory' => array('repo_id', 'directory'),
     ),
-    'primary key' => array('branch_id'),
+    'primary key' => array('fork_id'),
   );
 
-  $schema['versioncontrol_project_branch_maintainers'] = array(
-    'description' => 'The list of branch maintainers. The users here will have write access to the referenced branch.',
+  $schema['versioncontrol_project_fork_maintainers'] = array(
+    'description' => 'The list of fork maintainers. The users here will have write access to the referenced fork.',
     'fields' => array(
       'uid' => array(
         'description' => 'The Drupal user id (referring to {users}.uid) of the maintainer.',
@@ -70,15 +70,15 @@ function versioncontrol_project_schema() {
         'not null' => TRUE,
         'default' => 0,
       ),
-      'branch_id' => array(
-        'description' => 'The branch id (referring to {versioncontrol_project_projects}.branch_id) of the maintainer\'s branch.',
+      'fork_id' => array(
+        'description' => 'The fork id (referring to {versioncontrol_project_projects}.fork_id) of the maintainer\'s fork.',
         'type' => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
         'default' => 0,
       ),
     ),
-    'primary key' => array('uid', 'branch_id'),
+    'primary key' => array('uid', 'fork_id'),
   );
 
   $schema['versioncontrol_project_comaintainers'] = array(
@@ -155,23 +155,23 @@ function versioncontrol_project_install() {
   drupal_install_schema('versioncontrol_project');
 
   $cloneable_spec = array(
-    'description' => 'Boolean indicating whether the branches of the project are cloneable.',
+    'description' => 'Boolean indicating whether the forkes of the project are cloneable.',
     'type'        => 'int',
     'default'     => 0,
     'not null'    => TRUE,
   );
 
-  db_add_field($ret, 'project_projects', 'branches_cloneable', $cloneable_spec);
+  db_add_field($ret, 'project_projects', 'forkes_cloneable', $cloneable_spec);
 }
 
 /**
  * Implementation of hook_schema_alter().
  *
- * Adds the "branches_cloneable" field to the {project_projects} table.
+ * Adds the "forkes_cloneable" field to the {project_projects} table.
  */
 function versioncontrol_project_schema_alter(&$schema) {
-  $schema['project_projects']['fields']['branches_cloneable'] = array(
-    'description' => 'Boolean indicating whether the branches of the project are cloneable.',
+  $schema['project_projects']['fields']['forkes_cloneable'] = array(
+    'description' => 'Boolean indicating whether the forkes of the project are cloneable.',
     'type'        => 'int',
     'default'     => 0,
     'not null'    => TRUE,
@@ -286,21 +286,21 @@ function versioncontrol_project_update_6100() {
 }
 
 /**
- * Update 6101: Add 'name' field and 'branch_id' primary key to
+ * Update 6101: Add 'name' field and 'fork_id' primary key to
  * {versioncontrol_project_projects}.
  *
  * This begins to pave the way for multiple repositories per project.
  */
 function versioncontrol_project_update_6101() {
-  $branch_spec = array(
-    'description' => 'The primary key of project branch.',
+  $fork_spec = array(
+    'description' => 'The primary key of project fork.',
     'type' => 'serial',
     'unsigned' => TRUE,
     'not null' => TRUE,
   );
 
   $name_spec = array(
-    'description' => 'The name of the project branch.',
+    'description' => 'The name of the project fork.',
     'type'        => 'varchar',
     'length'      => 128,
     'default'     => '',
@@ -308,20 +308,20 @@ function versioncontrol_project_update_6101() {
   );
 
   $cloneable_spec = array(
-    'description' => 'Boolean indicating whether the branches of the project are cloneable.',
+    'description' => 'Boolean indicating whether the forkes of the project are cloneable.',
     'type'        => 'int',
     'default'     => 0,
     'not null'    => TRUE,
   );
 
   $new_keys = array(
-    'primary keys' => array('branch_id'),
+    'primary keys' => array('fork_id'),
   );
 
   db_drop_primary_key($ret, 'versioncontrol_project_projects');
-  db_add_field($ret, 'versioncontrol_project_projects', 'branch_id', $branch_spec, $new_keys);
+  db_add_field($ret, 'versioncontrol_project_projects', 'fork_id', $fork_spec, $new_keys);
   db_add_field($ret, 'versioncontrol_project_projects', 'name', $name_spec);
-  db_add_field($ret, 'project_projects', 'branches_cloneable', $cloneable_spec);
+  db_add_field($ret, 'project_projects', 'forkes_cloneable', $cloneable_spec);
 
   $ret[] = array('success' => TRUE, 'query' => 'Added new fields.');
 
@@ -329,13 +329,13 @@ function versioncontrol_project_update_6101() {
 }
 
 /**
- * Update 6102: Add the 'versioncontrol_project_branch_maintainters' table.
+ * Update 6102: Add the 'versioncontrol_project_fork_maintainters' table.
  *
- * Stores references to the maintainers of a branch.
+ * Stores references to the maintainers of a fork.
  */
 function versioncontrol_project_update_6102() {
   $table = array(
-    'description' => 'The list of branch maintainers. The users here will have write access to the referenced branch.',
+    'description' => 'The list of fork maintainers. The users here will have write access to the referenced fork.',
     'fields' => array(
       'uid' => array(
         'description' => 'The Drupal user id (referring to {users}.uid) of the maintainer.',
@@ -344,19 +344,19 @@ function versioncontrol_project_update_6102() {
         'not null' => TRUE,
         'default' => 0,
       ),
-      'branch_id' => array(
-        'description' => 'The branch id (referring to {versioncontrol_project_projects}.branch_id) of the maintainer\'s branch.',
+      'fork_id' => array(
+        'description' => 'The fork id (referring to {versioncontrol_project_projects}.fork_id) of the maintainer\'s fork.',
         'type' => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
         'default' => 0,
       ),
     ),
-    'primary key' => array('uid', 'branch_id'),
+    'primary key' => array('uid', 'fork_id'),
   );
-  db_create_table($ret, 'versioncontrol_project_branch_maintainers', $table);
+  db_create_table($ret, 'versioncontrol_project_fork_maintainers', $table);
 
-  $ret[] = array('success' => TRUE, 'query' => 'Added table {versioncontrol_project_branch_maintainters}.');
+  $ret[] = array('success' => TRUE, 'query' => 'Added table {versioncontrol_project_fork_maintainters}.');
 
   return $ret;
 }

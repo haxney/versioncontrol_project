@@ -6,6 +6,11 @@
  * (provided by the Project module) with version control systems supported
  * by the Version Control API.
  *
+ * A "fork" in this case is a copy of one or more branches of a repository which
+ * have a different set of permissions from the original. The idea is to allow
+ * users other than the original creators of the project to commit to a
+ * repository and have it show up on the Drupal site.
+ *
  * Copyright 2006, 2007 by Derek Wright ("dww", http://drupal.org/user/46549)
  * Copyright 2007, 2008, 2009 by Jakob Petsovits ("jpetso", http://drupal.org/user/56020)
  * Copyright 2009 by Daniel Hackney ("dhax", http://drupal.org/user/384635)
@@ -32,10 +37,10 @@ function versioncontrol_project_boot() {
  *
  * Adds the following permissions:
  *
- *   - 'clone project branches': Clone branches in projects.
+ *   - 'clone project forks': Clone forks in projects.
  */
 function versioncontrol_project_perm() {
-  return array('clone project branches');
+  return array('clone project forks');
 }
 
 /**
@@ -119,22 +124,22 @@ function versioncontrol_project_menu() {
   );
 
   /*
-   * View and manage branches.
+   * View and manage forks.
    */
-  $items['node/%versioncontrol_project_node/branches'] = array(
-    'title' => 'Branches',
+  $items['node/%versioncontrol_project_node/forks'] = array(
+    'title' => 'Forks',
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('versioncontrol_project_branches_form', 1),
+    'page arguments' => array('versioncontrol_project_forks_form', 1),
     'access arguments' => array(1),
     'type' => MENU_LOCAL_TASK,
     'weight' => 7,
   );
 
-  $items['node/%versioncontrol_project_node/branches/%branch_id/clone'] = array(
+  $items['node/%versioncontrol_project_node/forks/%fork_id/clone'] = array(
     'title' => 'Commit access',
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('versioncontrol_project_branches_clone_branch', 1, 3),
-    'access callback' => 'versioncontrol_project_branches_clone_branch_access',
+    'page arguments' => array('versioncontrol_project_forks_clone_fork', 1, 3),
+    'access callback' => 'versioncontrol_project_forks_clone_fork_access',
     'access arguments' => array(1, 3),
     'type' => MENU_CALLBACK,
   );
@@ -696,11 +701,11 @@ function versioncontrol_project_commit_access_form_submit($form, &$form_state) {
 }
 
 /**
- * Form callback for 'node/%versioncontrol_project_node/branches':
+ * Form callback for 'node/%versioncontrol_project_node/forks':
  *
- * List existing branches and provide an option to add a new branch.
+ * List existing forks and provide an option to add a new fork.
  */
-function versioncontrol_project_branches_form(&$form_state, $node) {
+function versioncontrol_project_forks_form(&$form_state, $node) {
   $form = array();
   $project = $node->versioncontrol_project;
   $repository = versioncontrol_get_repository($project['repo_id']);
@@ -711,7 +716,7 @@ function versioncontrol_project_branches_form(&$form_state, $node) {
   $form['introduction'] = array(
     '#type' => 'markup',
     '#value' => t(
-      'These are the branches of the %title project.', array(
+      'These are the forks of the %title project.', array(
         '%title' => $node->title,
       )),
     '#prefix' => '<p>',
@@ -719,11 +724,11 @@ function versioncontrol_project_branches_form(&$form_state, $node) {
   );
 
   if (versioncontrol_project_commit_access_edit_access($node)) {
-    $form['user_branches'] = array(
+    $form['user_forks'] = array(
       '#type' => 'checkbox',
       '#title' => t('Allow user repositories'),
       '#description' => t('Allow users to create their own private repositories.'),
-      '#default_value' => variable_get('versioncontrol_project_user_branches_access', 0),
+      '#default_value' => variable_get('versioncontrol_project_user_forks_access', 0),
     );
 
     $form['submit'] = array(
@@ -738,16 +743,16 @@ function versioncontrol_project_branches_form(&$form_state, $node) {
     '#value' => '',
     '#node' => $node, // remember that one for the '#after_build' function
     '#repository' => $repository, // and this one as well
-    '#after_build' => array('versioncontrol_project_branches_table'),
+    '#after_build' => array('versioncontrol_project_forks_table'),
   );
 
   return $form;
 }
 
 /**
- * Construct a table of branches of the current project.
+ * Construct a table of forks of the current project.
  */
-function versioncontrol_project_branches_table($form, $form_state) {
+function versioncontrol_project_forks_table($form, $form_state) {
   $node = $form['#node'];
   $project = $node->versioncontrol_project;
 
@@ -758,28 +763,28 @@ function versioncontrol_project_branches_table($form, $form_state) {
   $header[] = array('data' => t('Directory'));
   $header[] = array('data' => t('Actions'));
 
-  $query = 'SELECT b.nid, b.repo_id, b.directory, b.branch_id FROM {versioncontrol_project_projects} b WHERE b.nid = %d';
+  $query = 'SELECT b.nid, b.repo_id, b.directory, b.fork_id FROM {versioncontrol_project_projects} b WHERE b.nid = %d';
   $result = db_query($query, $node->nid);
-  while ($branch = db_fetch_object($result)) {
-    $repo = versioncontrol_get_repository($branch->repo_id);
+  while ($fork = db_fetch_object($result)) {
+    $repo = versioncontrol_get_repository($fork->repo_id);
 
-    // Get the maintainers of the branch.
+    // Get the maintainers of the fork.
     $result = db_query('SELECT u.uid, u.name FROM {users} u '.
-                       'INNER JOIN {versioncontrol_project_branch_maintainers} m '.
+                       'INNER JOIN {versioncontrol_project_fork_maintainers} m '.
                        'ON m.uid = u.uid '.
-                       'WHERE m.branch_id = %d', $branch->branch_id);
+                       'WHERE m.fork_id = %d', $fork->fork_id);
     $maintainers = array();
     while ($maintainer = db_fetch_object($result)) {
       $maintainers[] = $maintainer;
     }
 
-    $clone_branch = l(t('Clone this branch'), 'node/'. $node->nid .'/branches/'. $branch->branch_id .'/clone');
+    $clone_fork = l(t('Clone this fork'), 'node/'. $node->nid .'/forks/'. $fork->fork_id .'/clone');
 
     $rows[] = array(
       $repo['name'],
       theme('user_list', $maintainers),
-      check_plain($branch->directory),
-      $clone_branch,
+      check_plain($fork->directory),
+      $clone_fork,
     );
   }
 
@@ -788,48 +793,48 @@ function versioncontrol_project_branches_table($form, $form_state) {
 }
 
 /**
- * Submit function for branches form: save branch access setting.
+ * Submit function for forks form: save fork access setting.
  */
-function versioncontrol_project_branches_form_submit($form, &$form_state) {
+function versioncontrol_project_forks_form_submit($form, &$form_state) {
   $node = $form['#node'];
-  $node->branches_cloneable = $form_state['values']['user_branches'];
+  $node->forks_cloneable = $form_state['values']['user_forks'];
   node_save($node);
 
-  drupal_set_message(t('Branch settings for %title saved.', array('%title' => $node->title)));
+  drupal_set_message(t('Fork settings for %title saved.', array('%title' => $node->title)));
 }
 
 /**
- * Determines whether the user has access to clone the given branch of a
+ * Determines whether the user has access to clone the given fork of a
  * project.
  *
  * @param $project_node
- *   The project which will have its branch cloned.
+ *   The project which will have its fork cloned.
  *
- * @param $branch_id
- *   The branch to clone.
+ * @param $fork_id
+ *   The fork to clone.
  *
  * @param $account
  *   The user attempting to perform the clone. If not set, defaults to the
  *   currently logged-in user.
  */
-function versioncontrol_project_branches_clone_branch_access($project_node, $branch_id, $account = NULL) {
+function versioncontrol_project_forks_clone_fork_access($project_node, $fork_id, $account = NULL) {
   if (!isset($account)) {
     global $user;
     $account = clone $user;
   }
-  // Load the branch and repository from the database.
+  // Load the fork and repository from the database.
   $result = db_query('SELECT br.nid, br.repo_id, br.directory, br.name FROM {versioncontrol_project_projects} br '.
                      'INNER JOIN {versioncontrol_repositories} r '.
                      'ON br.repo_id = r.repo_id '.
-                     'WHERE br.branch_id = %d', $branch_id);
-  $branch = db_fetch_object($result);
+                     'WHERE br.fork_id = %d', $fork_id);
+  $fork = db_fetch_object($result);
 
   switch (TRUE) {
-    case (!$project_node->branches_cloneable):
+    case (!$project_node->forks_cloneable):
     case (!node_access('view', $project_node, $account)):
-    case (!user_access('clone project branches')):
-    case (!$branch):
-    case (!$repository = versioncontrol_get_repository($branch->repo_id)):
+    case (!user_access('clone project forks')):
+    case (!$fork):
+    case (!$repository = versioncontrol_get_repository($fork->repo_id)):
     case (!versioncontrol_is_account_authorized_cloneable($repository, $account->uid)):
       return FALSE;
     default:
