@@ -27,37 +27,72 @@ class ForksTest extends DrupalWebTestCase {
    *   The project node created
    */
   function createProject() {
-    $settings = array(
-      'type' => 'project_project',
-      'user_forks' => 1,
+//    $this->drupalGet('node/add/project-project');
+    $uri = $this->randomName();
+    $title = $this->randomName();
+    $edit = array(
+      'project[uri]' => $uri,
+      'title' => $title,
     );
-    return $this->drupalCreateNode($settings);
+    $this->drupalPost('node/add/project-project', $edit, 'Save');
+    $nid = project_get_nid_from_uri($uri);
+    return node_load($nid);
   }
 
   /**
    * Test the display of the forks page form.
    */
   function testForksPage() {
+    $group = t('Forks page');
+    $this->admin_user = $this->drupalCreateUser(
+      array(
+        'access own projects',
+        'access projects',
+        'administer projects',
+        'maintain projects',
+
+        // Remove this once versioncontrol_project.module is modified
+        // versioncontrol_project_nodeapi(validate)
+        'administer version control systems',
+
+        'clone project forks',
+        'view project forks',
+      ));
+    $this->drupalLogin($this->admin_user);
     $this->project = $this->createProject();
+    $this->node_path = 'node/'. $this->project->nid;
+    $this->forks_path = $this->node_path .'/forks';
 
-    $this->drupalGet('node/'. $this->project->nid);
+    // Try to access a node as the anonymous user.
+    $this->drupalLogout();
+    $this->drupalGet($this->node_path);
+    $this->assertResponse(
+      403,
+      t('Deny viewing projects to anonymous users.'),
+      $group
+    );
+
+    $this->drupalLogin($this->drupalCreateUser(array('access projects')));
+    $this->drupalGet($this->node_path);
+    $this->assertNoRaw(
+      l(t('Forks'), $this->forks_path),
+      t('No local menu link to "Forks" for unauthorized users.'),
+      $group
+    );
+    $this->drupalGet($this->forks_path);
+    $this->assertResponse(
+      403,
+      t('Deny viewing forks to unauthorized users.'),
+      $group
+    );
+
+    $this->drupalLogin($this->admin_user);
+    $this->drupalGet($this->node_path);
     $this->clickLink(t('Forks'));
-    $this->assertResponse(403, t('Deny viewing forks to anonymous users.'));
-
-    $this->admin_user = $this->drupalCreateUser(array(
-              'access own projects',
-              'access projects',
-              'administer projects',
-              'clone project forks',
-              'view project forks',
-            ));
-
-    $this->drupalLogin($this->drupalCreateUser());
-    $this->clickLink(t('Forks'));
-    $this->assertResponse(403, t('Deny viewing forks to unauthorized users.'));
-
-    $this->drupalLogin($this->drupalCreateUser());
-    $this->clickLink(t('Forks'));
-    $this->assertResponse(200, t('Allow viewing forks by admin users.'));
+    $this->assertResponse(
+      200,
+      t('Allow viewing forks by admin users.'),
+      $group
+    );
   }
 }
