@@ -129,7 +129,7 @@ function versioncontrol_project_menu() {
   /*
    * View and manage forks.
    */
-  $items['node/%versioncontrol_project_node/forks'] = array(
+  $items['node/%project_node/forks'] = array(
     'title' => 'Forks',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('versioncontrol_project_forks_form', 1),
@@ -138,7 +138,7 @@ function versioncontrol_project_menu() {
     'weight' => 7,
   );
 
-  $items['node/%versioncontrol_project_node/forks/%fork_id/clone'] = array(
+  $items['node/%project_node/forks/%fork_id/clone'] = array(
     'title' => 'Commit access',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('versioncontrol_project_forks_clone_fork', 1, 3),
