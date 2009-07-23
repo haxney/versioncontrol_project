@@ -43,7 +43,7 @@ class ForksTest extends DrupalWebTestCase {
    * Test the display of the forks page form.
    */
   function testForksPage() {
-    $group = t('Forks page');
+    $group = t('Forks tab');
     $this->admin_user = $this->drupalCreateUser(
       array(
         'access own projects',
