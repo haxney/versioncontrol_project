@@ -94,5 +94,28 @@ class ForksTest extends DrupalWebTestCase {
       t('Allow viewing forks by admin users.'),
       $group
     );
+
+
+    $table = array_shift($this->elements->xpath("//form[@id='versioncontrol-project-forks-form']/div/table[1]"));
+    $table_headings = $table->thead->tr->th;
+    $expected_headings = array(
+      0 => t('Repository'),
+      1 => t('Maintainers'),
+      2 => t('Directory'),
+      3 => t('Actions'),
+    );
+    // Test the table headings
+    foreach ($expected_headings as $index => $title) {
+      $actual = ($table_headings[$index]->a) ?
+                $table_headings[$index]->a :
+                $table_headings[$index];
+      $this->assertEqual(
+        (string) $actual,
+        $title,
+        t('Make sure heading number !index is "%title"', array('!index' => $index, '%title' => $title)),
+        $group
+      );
+    }
+
   }
 }
