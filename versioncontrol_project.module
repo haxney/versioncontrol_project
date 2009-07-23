@@ -778,6 +778,9 @@ function versioncontrol_project_forks_table($form, $form_state) {
   $result = db_query($query, $node->nid);
   while ($fork = db_fetch_object($result)) {
     $repo = versioncontrol_get_repository($fork->repo_id);
+    if (!$repo) {
+      continue;
+    }
 
     // Get the maintainers of the fork.
     $result = db_query('SELECT u.uid, u.name FROM {users} u '.

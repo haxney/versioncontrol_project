@@ -95,9 +95,11 @@ class ForksTest extends DrupalWebTestCase {
       $group
     );
 
-
-    $table = array_shift($this->elements->xpath("//form[@id='versioncontrol-project-forks-form']/div/table[1]"));
-    $table_headings = $table->thead->tr->th;
+    $table_path = "//form[@id='versioncontrol-project-forks-form']/div/table[1]";
+    $table = array_shift($this->elements->xpath($table_path));
+    $table_headings = $table->thead ?
+                      $table->thead->tr->th :
+                      $table->tr->th;
     $expected_headings = array(
       0 => t('Repository'),
       1 => t('Maintainers'),
@@ -117,5 +119,12 @@ class ForksTest extends DrupalWebTestCase {
       );
     }
 
+    // There should not be any table body rows (since we haven't added any forks
+    // yet).
+    $this->assertFalse(
+      (bool) $table->tbody->tr,
+      t('Forks table contains no entries.'),
+      $group
+    );
   }
 }
