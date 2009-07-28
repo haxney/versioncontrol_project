@@ -860,7 +860,7 @@ function versioncontrol_project_forks_clone_access($project_node, $fork, $accoun
   $fork = db_fetch_object($result);
 
   switch (TRUE) {
-    case (!$project_node->forks_cloneable):
+    case (!$project_node->project['forks_cloneable']):
     case (!node_access('view', $project_node, $account)):
     case (!user_access('clone project forks')):
     case (!$fork):
