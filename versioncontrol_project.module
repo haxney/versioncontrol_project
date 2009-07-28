@@ -856,7 +856,7 @@ function versioncontrol_project_forks_clone_access($project_node, $fork, $accoun
   $result = db_query('SELECT br.nid, br.repo_id, br.directory, br.name FROM {versioncontrol_project_projects} br '.
                      'INNER JOIN {versioncontrol_repositories} r '.
                      'ON br.repo_id = r.repo_id '.
-                     'WHERE br.fork_id = %d', $fork_id);
+                     'WHERE br.fork_id = %d', $fork['fork_id']);
   $fork = db_fetch_object($result);
 
   switch (TRUE) {
