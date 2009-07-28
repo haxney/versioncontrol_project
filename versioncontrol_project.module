@@ -760,20 +760,6 @@ function versioncontrol_project_forks_form(&$form_state, $node) {
     '#suffix' => '</p>',
   );
 
-  if (versioncontrol_project_commit_access_edit_access($node)) {
-    $form['user_forks'] = array(
-      '#type' => 'checkbox',
-      '#title' => t('Allow user forks'),
-      '#description' => t('Allow users to create their own private repositories.'),
-      '#default_value' => variable_get('versioncontrol_project_user_forks_access', 0),
-    );
-
-    $form['submit'] = array(
-      '#type' => 'submit',
-      '#value' => t('Save settings'),
-    );
-  }
-
   // The actual table is created inside the '#after_build' function.
   $form['table'] = array(
     '#type' => 'markup',
