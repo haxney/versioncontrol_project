@@ -344,6 +344,7 @@ function versioncontrol_project_nodeapi(&$node, $op, $arg = NULL) {
 
       case 'insert':
       case 'update':
+        db_query("UPDATE {project_projects} SET forks_cloneable = %d WHERE nid = %d", $node->forks_cloneable, $node->nid);
         // The node array possibly contains repo_id and project_directory
         // as the submit values of the (form_altered) node edit form.
         if (!isset($node->repo_id)) {
@@ -398,7 +399,7 @@ function versioncontrol_project_form_alter(&$form, $form_state, $form_id) {
       '#collapsed' => isset($project),
     );
 
-    $form['versioncontrol_project']['user_forks'] = array(
+    $form['versioncontrol_project']['forks_cloneable'] = array(
       '#type' => 'checkbox',
       '#title' => t('Allow user forks'),
       '#description' => t('Allow users to create their own forks of repositories.'),
@@ -823,7 +824,7 @@ function versioncontrol_project_forks_table($form, $form_state) {
  */
 function versioncontrol_project_forks_form_submit($form, &$form_state) {
   $node = $form['#node'];
-  $node->forks_cloneable = $form_state['values']['user_forks'];
+  $node->forks_cloneable = $form_state['values']['forks_cloneable'];
   node_save($node);
 
   drupal_set_message(t('Fork settings for %title saved.', array('%title' => $node->title)));
